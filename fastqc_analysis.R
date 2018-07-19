@@ -68,3 +68,18 @@ df_list$adapter_content %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4),
         legend.position = "bottom")
 
+ggplot(df_list$per_tile_sequence_quality, aes(factor(Tile), Mean))+
+  geom_boxplot()+
+  labs(x = "Tile",
+       y = "Mean Quality Score")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4))
+
+df_list$per_base_sequence_content %>%
+  gather(key, value, -c(ref, Base, group)) %>%
+  ggplot(aes(factor(Base, levels = unique(Base), ordered = TRUE), value, color = key, group = key))+
+  geom_line()+
+  labs(x = "Position in Read",
+       y = "Percent (%)")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4))
