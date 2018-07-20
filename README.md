@@ -28,8 +28,4 @@ scales
 svglite
 
 # Usage
-Rscript fastqc_analysis.R zipfiles_location output_dir libpath
-
-libpath is the path to the library with extra packages not installed in
-the default library location on the HPC cluster.
-
+Rscript fastqc_analysis.R zipfiles_location output_dir

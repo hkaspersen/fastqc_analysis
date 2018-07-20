@@ -3,7 +3,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 report_loc <- args[1]
 output_dir <- args[2]
-libpath <- args[3]
+libpath <- "/work/projects/nn9305k/lib/R"
 
 .libPaths(c(libpath,.libPaths()))
 
@@ -229,7 +229,6 @@ create_plots <- function(df_list) {
       vjust = 0.4
     ))
   save_plots(p1, "adapter_content")
-  save_plots(p2, "per_tile_sequence_quality")
   save_plots(p3, "per_base_sequence_content")
   save_plots(p4, "sequence_duplication_levels")
   save_plots(p5, "sequence_length_per_read_size")
