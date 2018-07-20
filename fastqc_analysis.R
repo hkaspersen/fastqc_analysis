@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 args <- commandArgs(trailingOnly = TRUE)
 
-report_loc <- "D:/R-Projects/fastqc_analysis/reports"
-output_dir <- "D:/R-Projects/fastqc_analysis"
-libpath <- "D:/Programmer/R-3.5.1/library"
+report_loc <- args[1]
+output_dir <- args[2]
+libpath <- args[3]
 
 .libPaths(c(libpath,.libPaths()))
 
