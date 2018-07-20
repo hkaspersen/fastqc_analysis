@@ -1,4 +1,4 @@
-# fastqc_analysis
+# Information
 R script for analysis of fastqc reports. The script relies on the .zip 
 files created by fastqc, and use the fastqcr package 
 (https://CRAN.R-project.org/package=fastqcr) for importing the data (no 
