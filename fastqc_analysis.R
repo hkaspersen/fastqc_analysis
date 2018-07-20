@@ -1,16 +1,18 @@
 #!/usr/bin/env Rscript
 args <- commandArgs(trailingOnly = TRUE)
 
-report_loc <- args[1]
-output_dir <- args[2]
-libpath <- args[3]
+report_loc <- "D:/R-Projects/fastqc_analysis/reports"
+output_dir <- "D:/R-Projects/fastqc_analysis"
+libpath <- "D:/Programmer/R-3.5.1/library"
 
 .libPaths(c(libpath,.libPaths()))
 
 # Libraries
 
 library(fastqcr, lib.loc = libpath)
-library(tidyverse, lib.loc = libpath)
+library(dplyr, lib.loc = libpath)
+library(ggplot2, lib.loc = libpath)
+library(tidyr, lib.loc = libpath)
 library(viridis, lib.loc = libpath)
 library(ggsci, lib.loc = libpath)
 library(scales, lib.loc = libpath)

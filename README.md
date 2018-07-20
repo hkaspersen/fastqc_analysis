@@ -11,7 +11,9 @@ output_dir location.
 # Dependencies
 The script depends on the following packages:
 fastqcr
-tidyverse
+dplyr
+ggplot2
+tidyr
 viridis
 ggsci
 scales
