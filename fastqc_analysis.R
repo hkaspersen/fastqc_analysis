@@ -3,20 +3,17 @@ args <- commandArgs(trailingOnly = TRUE)
 
 report_loc <- args[1]
 output_dir <- args[2]
-libpath <- "/work/projects/nn9305k/lib/R"
-
-.libPaths(c(libpath,.libPaths()))
 
 # Libraries
 
-library(fastqcr, lib.loc = libpath)
-library(dplyr, lib.loc = libpath)
-library(ggplot2, lib.loc = libpath)
-library(tidyr, lib.loc = libpath)
-library(viridis, lib.loc = libpath)
-library(ggsci, lib.loc = libpath)
-library(scales, lib.loc = libpath)
-library(svglite, lib.loc = libpath)
+library(fastqcr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(viridis)
+library(ggsci)
+library(scales)
+library(svglite)
 
 # Functions
 
