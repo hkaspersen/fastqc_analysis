@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 args <- commandArgs(trailingOnly = TRUE)
 
-report_loc <- "D:/R_Data/fastqc/reports_wgs_art_1"
-output_dir <- "D:/R_Results/fastqc"
+report_loc <- args[1]
+output_dir <- args[2]
 
 # Libraries
 
@@ -256,6 +256,7 @@ create_plots <- function(df_list) {
          title = "Total deduplicated percentage") +
     theme_classic()
   
+  # This produces a huge figure - excluded for now
   # p9 <- df_list$per_tile_sequence_quality %>%
   #   left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
   #   rename(seqlen = "Sequence length") %>%
