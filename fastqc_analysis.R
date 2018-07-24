@@ -291,10 +291,9 @@ create_plots <- function(df_list) {
   save_plots(p6, "per_sequence_gc_content", 25, 30)
   save_plots(p7, "per_base_n_content", 25, 35)
   save_plots(p8, "total_deduplicated_percentage", 20, 20)
-  # save_plots(p9, "per_tile_sequence_quality", 30, 35)
 }
 
-# Check data
+# Check output directory
 check_dir(output_dir)
 output_dir <- paste0(output_dir, "/fastqc_results_", Sys.Date())
 
