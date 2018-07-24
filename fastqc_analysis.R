@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 args <- commandArgs(trailingOnly = TRUE)
 
-report_loc <- args[1]
-output_dir <- args[2]
+report_loc <- "D:/R_Data/fastqc/reports_wgs_art_1"
+output_dir <- "D:/R_Results/fastqc"
 
 # Libraries
 
@@ -241,6 +241,47 @@ create_plots <- function(df_list) {
           axis.ticks.x = element_blank()) +
     facet_wrap( ~ seqlen, scales = "free")
   
+  p8 <- df_list$total_deduplicated_percentage %>%
+    select(-group) %>%
+    gather(key = "ref", value = `1`) %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length",
+           perc = `1`) %>%
+    mutate(perc = as.numeric(perc)) %>%
+    ggplot(aes(factor(seqlen), perc)) +
+    geom_boxplot(fill = "#e6e6e6") + 
+    scale_y_continuous(limits = c(0, 100)) +
+    labs(x = "Read size",
+         y = "Total percentage of deduplicated reads",
+         title = "Total deduplicated percentage") +
+    theme_classic()
+  
+  # p9 <- df_list$per_tile_sequence_quality %>%
+  #   left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+  #   rename(seqlen = "Sequence length") %>%
+  #   ggplot(aes(factor(Base,
+  #                     levels = unique(Base),
+  #                     ordered = TRUE),
+  #              factor(Tile),
+  #              fill = Mean)) +
+  #   geom_tile() +
+  #   scale_fill_viridis(limits = c(-10, 5),
+  #                      breaks = c(-10, -8, -6, -4, -2, 0, 2, 4),
+  #                      guide=guide_colourbar(ticks=T,nbin=50,barheight=.5,label=T,barwidth=10)) +
+  #   labs(y = "Tiles",
+  #        x = "Position in read",
+  #        title = "Per tile sequence quality (mean)",
+  #        fill = NULL) +
+  #   theme_classic() +
+  #   theme(legend.position="bottom",
+  #         legend.justification="center",
+  #         legend.direction="horizontal",
+  #         legend.text=element_text(color="grey20"),
+  #         axis.text.x = element_blank(),
+  #         axis.ticks.x = element_blank(),
+  #         axis.text.y = element_text(size = 6)) +
+  #   facet_wrap(~seqlen, scales = "free")
+    
   save_plots(p1, "adapter_content", 25, 35)
   save_plots(p2, "per_base_sequence_content", 25, 35)
   save_plots(p3, "sequence_duplication_levels", 25, 30)
@@ -248,6 +289,8 @@ create_plots <- function(df_list) {
   save_plots(p5, "per_sequence_quality_scores", 25, 35)
   save_plots(p6, "per_sequence_gc_content", 25, 30)
   save_plots(p7, "per_base_n_content", 25, 35)
+  save_plots(p8, "total_deduplicated_percentage", 20, 20)
+  # save_plots(p9, "per_tile_sequence_quality", 30, 35)
 }
 
 # Check data
