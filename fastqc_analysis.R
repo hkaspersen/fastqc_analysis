@@ -45,6 +45,8 @@ get_fastqc_data <- function(filepath) {
   names(data_list) <- gsub("(.*?)_fastqc.zip", "\\1", get_files)
   data_list <- purrr::transpose(data_list)
   
+  data_list$kmer_content <- NULL
+  
   list_names <- names(data_list)
   list_numbers <- 1:length(list_names)
   for (i in list_numbers) {
@@ -62,10 +64,11 @@ get_fastqc_data <- function(filepath) {
                   sequence_duplication_levels,
                   overrepresented_sequences,
                   adapter_content,
-                  kmer_content,
                   total_deduplicated_percentage)
   names(df_list) <- list_names
   df_list <- lapply(df_list, create_groups)
+  df_list$basic_statistics <- df_list$basic_statistics %>%
+    spread(Measure,Value)
   return(df_list)
 }
 
@@ -83,23 +86,31 @@ prepare_seq_len_data <- function(list) {
   return(x)
 }
 
-save_plots <- function(plot, title) {
+save_plots <- function(plot, title, height, width) {
   ggsave(paste0(output_dir, "/", title, ".svg"),
          plot,
          dpi = 100,
          device = "svg",
          units = "cm",
-         height = 25,
-         width = 25)
+         height = height,
+         width = width)
 }
 
 create_plots <- function(df_list) {
   p1 <- df_list$adapter_content %>%
-    gather(key, value,-c(ref, Position, group)) %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length") %>%
+    gather(key,
+           value, -c(ref,
+                     Position,
+                     group,
+                     seqlen)) %>%
     ggplot(aes(factor(
-      Position, levels = unique(Position), ordered = TRUE
+      Position,
+      levels = unique(Position),
+      ordered = TRUE
     ), value, color = key)) +
-    geom_boxplot() +
+    geom_boxplot(outlier.size = 0.5) +
     labs(
       x = "Position in Read",
       y = "Percent (%) Adapter Content",
@@ -107,29 +118,19 @@ create_plots <- function(df_list) {
       title = "Adapter content"
     ) +
     scale_colour_jama() +
+    scale_y_continuous(limits = c(0, 20)) +
     theme_classic() +
-    theme(axis.text.x = element_text(
-      angle = 90,
-      hjust = 1,
-      vjust = 0.4
-    ),
-    legend.position = "bottom")
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      legend.position = "bottom"
+    ) +
+    facet_wrap(~ seqlen, scales = "free")
   
-  p2 <-
-    ggplot(df_list$per_tile_sequence_quality, aes(factor(Tile), Mean)) +
-    geom_boxplot() +
-    labs(x = "Tile",
-         y = "Mean Quality Score",
-         title = "Per tile sequence quality") +
-    theme_classic() +
-    theme(axis.text.x = element_text(
-      angle = 90,
-      hjust = 1,
-      vjust = 0.4
-    ))
-  
-  p3 <- df_list$per_base_sequence_content %>%
-    gather(key, value,-c(ref, Base, group)) %>%
+  p2 <- df_list$per_base_sequence_content %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length") %>%
+    gather(key, value, -c(ref, Base, group, seqlen)) %>%
     ggplot(aes(factor(
       Base, levels = unique(Base), ordered = TRUE
     ), value, color = key)) +
@@ -142,15 +143,17 @@ create_plots <- function(df_list) {
     ) +
     theme_classic() +
     scale_color_jama() +
-    theme(axis.text.x = element_text(
-      angle = 90,
-      hjust = 1,
-      vjust = 0.4
-    ),
-    legend.position = "bottom")
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      legend.position = "bottom"
+    ) +
+    facet_wrap( ~ seqlen, scales = "free")
   
-  p4 <- df_list$sequence_duplication_levels %>%
-    gather(key, value,-c(ref, `Duplication Level`, group)) %>%
+  p3 <- df_list$sequence_duplication_levels %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length") %>%
+    gather(key, value, -c(ref, `Duplication Level`, group, seqlen)) %>%
     ggplot(aes(
       factor(
         `Duplication Level`,
@@ -168,15 +171,21 @@ create_plots <- function(df_list) {
          y = "Percent (%) of Sequences",
          fill = NULL,
          title = "Sequence duplication levels") +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom",
+          axis.text.x = element_text(
+            angle = 90,
+            hjust = 1,
+            vjust = 0.4
+          )) +
+    facet_wrap( ~ seqlen, scales = "free")
   
-  p5 <- df_list %>%
+  p4 <- df_list %>%
     prepare_seq_len_data() %>%
-    ggplot(aes(ref, Count, fill = group)) +
-    geom_col(color = "black") +
+    ggplot(aes(factor(Length), Count)) +
+    geom_boxplot() +
     scale_y_continuous(labels = comma) +
     scale_fill_viridis(discrete = TRUE) +
-    labs(x = NULL,
+    labs(x = "Read Size",
          y = "Total sequence length",
          title = "Sequence length per read size") +
     guides(fill = FALSE) +
@@ -185,11 +194,11 @@ create_plots <- function(df_list) {
       angle = 90,
       hjust = 1,
       vjust = 0.4
-    ),
-    legend.position = "bottom") +
-    facet_wrap( ~ Length)
+    ))
   
-  p6 <- df_list$per_sequence_quality_scores %>%
+  p5 <- df_list$per_sequence_quality_scores %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(Quality), Count, fill = factor(Quality))) +
     geom_boxplot() +
     scale_y_continuous(labels = comma) +
@@ -198,9 +207,13 @@ create_plots <- function(df_list) {
          y = "Number of reads",
          title = "Per sequence quality scores") +
     guides(fill = FALSE) +
-    theme_classic()
+    theme_classic() +
+    theme(axis.text.x = element_text(size = 7)) +
+    facet_wrap( ~ seqlen)
   
-  p7 <- df_list$per_sequence_gc_content %>%
+  p6 <- df_list$per_sequence_gc_content %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(`GC Content`), Count)) +
     geom_boxplot() +
     labs(x = "GC content (%)",
@@ -210,28 +223,31 @@ create_plots <- function(df_list) {
     scale_x_discrete(breaks = as.character(seq(
       from = 0, to = 100, by = 10
     ))) +
-    theme_classic()
+    theme_classic() +
+    facet_wrap( ~ seqlen, scales = "free")
   
-  p8 <- df_list$per_base_n_content %>%
+  p7 <- df_list$per_base_n_content %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(
       Base, levels = unique(Base), ordered = TRUE
     ), `N-Count`)) +
-    geom_boxplot() +
+    geom_boxplot(fill = "#e6e6e6") +
     labs(x = "Position in read",
          title = "Per base N content") +
+    guides(fill = FALSE) +
     theme_classic() +
-    theme(axis.text.x = element_text(
-      angle = 90,
-      hjust = 1,
-      vjust = 0.4
-    ))
-  save_plots(p1, "adapter_content")
-  save_plots(p3, "per_base_sequence_content")
-  save_plots(p4, "sequence_duplication_levels")
-  save_plots(p5, "sequence_length_per_read_size")
-  save_plots(p6, "per_sequence_quality_scores")
-  save_plots(p7, "per_sequence_gc_content")
-  save_plots(p8, "per_base_n_content")
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank()) +
+    facet_wrap( ~ seqlen, scales = "free")
+  
+  save_plots(p1, "adapter_content", 25, 35)
+  save_plots(p2, "per_base_sequence_content", 25, 35)
+  save_plots(p3, "sequence_duplication_levels", 25, 30)
+  save_plots(p4, "sequence_length_per_read_size", 20, 20)
+  save_plots(p5, "per_sequence_quality_scores", 25, 35)
+  save_plots(p6, "per_sequence_gc_content", 25, 30)
+  save_plots(p7, "per_base_n_content", 25, 35)
 }
 
 # Check data
