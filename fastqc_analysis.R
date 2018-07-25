@@ -134,7 +134,7 @@ create_plots <- function(df_list) {
     ggplot(aes(factor(
       Base, levels = unique(Base), ordered = TRUE
     ), value, color = key)) +
-    geom_boxplot() +
+    geom_boxplot(outlier.size = 0.5) +
     labs(
       x = "Position in Read",
       y = "Percent (%)",
@@ -163,7 +163,7 @@ create_plots <- function(df_list) {
       value,
       fill = key
     )) +
-    geom_boxplot() +
+    geom_boxplot(outlier.size = 0.5) +
     scale_fill_manual(values = c("#ef8a62",
                                  "#67a9cf")) +
     theme_classic() +
@@ -182,7 +182,7 @@ create_plots <- function(df_list) {
   p4 <- df_list %>%
     prepare_seq_len_data() %>%
     ggplot(aes(factor(Length), Count)) +
-    geom_boxplot() +
+    geom_boxplot(outlier.size = 0.5) +
     scale_y_continuous(labels = comma) +
     scale_fill_viridis(discrete = TRUE) +
     labs(x = "Read Size",
@@ -200,7 +200,7 @@ create_plots <- function(df_list) {
     left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(Quality), Count, fill = factor(Quality))) +
-    geom_boxplot() +
+    geom_boxplot(outlier.size = 0.5) +
     scale_y_continuous(labels = comma) +
     scale_fill_viridis(discrete = TRUE) +
     labs(x = "Quality",
@@ -215,7 +215,7 @@ create_plots <- function(df_list) {
     left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(`GC Content`), Count)) +
-    geom_boxplot() +
+    geom_boxplot(outlier.size = 0.5) +
     labs(x = "GC content (%)",
          y = "Number of reads",
          title = "Per sequence GC content") +
@@ -232,7 +232,8 @@ create_plots <- function(df_list) {
     ggplot(aes(factor(
       Base, levels = unique(Base), ordered = TRUE
     ), `N-Count`)) +
-    geom_boxplot(fill = "#e6e6e6") +
+    geom_boxplot(fill = "#e6e6e6",
+                 outlier.size = 0.5) +
     labs(x = "Position in read",
          title = "Per base N content") +
     guides(fill = FALSE) +
@@ -249,7 +250,8 @@ create_plots <- function(df_list) {
            perc = `1`) %>%
     mutate(perc = as.numeric(perc)) %>%
     ggplot(aes(factor(seqlen), perc)) +
-    geom_boxplot(fill = "#e6e6e6") + 
+    geom_boxplot(fill = "#e6e6e6",
+                 outlier.size = 0.5) + 
     scale_y_continuous(limits = c(0, 100)) +
     labs(x = "Read size",
          y = "Total percentage of deduplicated reads",
