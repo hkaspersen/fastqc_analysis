@@ -23,7 +23,7 @@ check_dir <- function(output_dir) {
 }
 
 file_names <- function(filepath) {
-  files <- list.files(path = filepath, pattern = "_fastqc")
+  files <- list.files(path = filepath, pattern = "_fastqc.zip")
   return(files)
 }
 
@@ -45,6 +45,7 @@ get_fastqc_data <- function(filepath) {
   names(data_list) <- gsub("(.*?)_fastqc.zip", "\\1", get_files)
   data_list <- purrr::transpose(data_list)
   
+  data_list$sequence_length_distribution <- NULL
   data_list$kmer_content <- NULL
   
   list_names <- names(data_list)
@@ -60,7 +61,6 @@ get_fastqc_data <- function(filepath) {
                   per_base_sequence_content,
                   per_sequence_gc_content,
                   per_base_n_content,
-                  sequence_length_distribution,
                   sequence_duplication_levels,
                   overrepresented_sequences,
                   adapter_content,
@@ -179,22 +179,28 @@ create_plots <- function(df_list) {
           )) +
     facet_wrap( ~ seqlen, scales = "free")
   
-  p4 <- df_list %>%
-    prepare_seq_len_data() %>%
-    ggplot(aes(factor(Length), Count)) +
-    geom_boxplot(outlier.size = 0.5) +
-    scale_y_continuous(labels = comma) +
-    scale_fill_viridis(discrete = TRUE) +
-    labs(x = "Read Size",
-         y = "Total sequence length",
-         title = "Sequence length per read size") +
-    guides(fill = FALSE) +
-    theme_classic() +
-    theme(axis.text.x = element_text(
-      angle = 90,
-      hjust = 1,
-      vjust = 0.4
-    ))
+  # p4 <- df_list %>%
+  #   prepare_seq_len_data() %>%
+  #   left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+  #   rename(seqlen = "Sequence length") %>%
+  #   ggplot(aes(factor(Length,
+  #                     ordered = TRUE,
+  #                     levels = unique(Length)),
+  #              Count)) +
+  #   geom_boxplot(outlier.size = 0.5) +
+  #   scale_y_continuous(labels = comma) +
+  #   scale_fill_viridis(discrete = TRUE) +
+  #   labs(x = "Read Size",
+  #        y = "Total sequence length",
+  #        title = "Sequence length per read size") +
+  #   guides(fill = FALSE) +
+  #   theme_classic() +
+  #   theme(axis.text.x = element_text(
+  #     angle = 90,
+  #     hjust = 1,
+  #     vjust = 0.4
+  #   )) +
+  #   facet_wrap(~seqlen, scales = "free")
   
   p5 <- df_list$per_sequence_quality_scores %>%
     left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
@@ -285,14 +291,64 @@ create_plots <- function(df_list) {
   #         axis.text.y = element_text(size = 6)) +
   #   facet_wrap(~seqlen, scales = "free")
     
+  p10 <- df_list$per_base_sequence_quality %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    rename(seqlen = "Sequence length") %>%
+    mutate(Base = factor(Base,
+                         levels = unique(Base),
+                         ordered = TRUE)) %>%
+    group_by(seqlen) %>%
+    mutate(xmax = length(unique(Base)) + 1) %>%
+    ungroup() %>%
+    ggplot(aes(Base,
+               Mean)) +
+    geom_boxplot(outlier.size = 0.4,
+                 fill = "#7f7f7f") +
+    geom_rect(aes(
+      ymin = 28,
+      ymax = Inf,
+      xmin = 0,
+      xmax = xmax
+    ),
+    fill = "#008000",
+    alpha = 0.006) +
+    geom_rect(aes(
+      ymin = 20,
+      ymax = 28,
+      xmin = 0,
+      xmax = xmax
+    ),
+    fill = "#FFDF00",
+    alpha = 0.006) +
+    geom_rect(aes(
+      ymin = 0,
+      ymax = 20,
+      xmin = 0,
+      xmax = xmax
+    ),
+    fill = "#ff1919",
+    alpha = 0.006) +
+    labs(x = "Position in read",
+         y = "Sequence quality",
+         title = "Per base mean sequence quality") +
+    scale_y_continuous(limits = c(0, 42)) +
+    theme_classic() +
+    theme(axis.text.x = element_text(
+      size = 7,
+      angle = 90,
+      hjust = 1,
+      vjust = 0.4
+    )) +
+    facet_wrap(~ seqlen, scales = "free")
+  
   save_plots(p1, "adapter_content", 25, 35)
   save_plots(p2, "per_base_sequence_content", 25, 35)
   save_plots(p3, "sequence_duplication_levels", 25, 30)
-  save_plots(p4, "sequence_length_per_read_size", 20, 20)
   save_plots(p5, "per_sequence_quality_scores", 25, 35)
   save_plots(p6, "per_sequence_gc_content", 25, 30)
   save_plots(p7, "per_base_n_content", 25, 35)
   save_plots(p8, "total_deduplicated_percentage", 20, 20)
+  save_plots(p10, "per_base_mean_sequence_quality", 25, 25)
 }
 
 # Check output directory
