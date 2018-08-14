@@ -110,6 +110,7 @@ create_plots <- function(df_list) {
       levels = unique(Position),
       ordered = TRUE
     ), value, color = key)) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.5) +
     labs(
       x = "Position in Read",
@@ -134,6 +135,7 @@ create_plots <- function(df_list) {
     ggplot(aes(factor(
       Base, levels = unique(Base), ordered = TRUE
     ), value, color = key)) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.5) +
     labs(
       x = "Position in Read",
@@ -163,6 +165,7 @@ create_plots <- function(df_list) {
       value,
       fill = key
     )) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.5) +
     scale_fill_manual(values = c("#ef8a62",
                                  "#67a9cf")) +
@@ -206,6 +209,7 @@ create_plots <- function(df_list) {
     left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(Quality), Count, fill = factor(Quality))) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.5) +
     scale_y_continuous(labels = comma) +
     scale_fill_viridis(discrete = TRUE) +
@@ -221,6 +225,7 @@ create_plots <- function(df_list) {
     left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(`GC Content`), Count)) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.5) +
     labs(x = "GC content (%)",
          y = "Number of reads",
@@ -238,6 +243,7 @@ create_plots <- function(df_list) {
     ggplot(aes(factor(
       Base, levels = unique(Base), ordered = TRUE
     ), `N-Count`)) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(fill = "#e6e6e6",
                  outlier.size = 0.5) +
     labs(x = "Position in read",
@@ -256,6 +262,7 @@ create_plots <- function(df_list) {
            perc = `1`) %>%
     mutate(perc = as.numeric(perc)) %>%
     ggplot(aes(factor(seqlen), perc)) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(fill = "#e6e6e6",
                  outlier.size = 0.5) + 
     scale_y_continuous(limits = c(0, 100)) +
@@ -302,6 +309,7 @@ create_plots <- function(df_list) {
     ungroup() %>%
     ggplot(aes(Base,
                Mean)) +
+    stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.4,
                  fill = "#7f7f7f") +
     geom_rect(aes(
