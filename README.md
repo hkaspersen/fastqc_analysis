@@ -27,5 +27,7 @@ scales
 
 svglite
 
+R.utils
+
 # Usage
 Rscript fastqc_analysis.R zipfiles_location output_dir
