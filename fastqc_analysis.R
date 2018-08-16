@@ -3,6 +3,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 report_loc <- args[1]
 output_dir <- args[2]
+script.dir <- dirname(sys.frame(1)$ofile)
 
 # Libraries
 
@@ -17,7 +18,10 @@ library(svglite)
 library(R.utils)
 
 # Import functions
-sourceDirectory("src/")
+sourceDirectory(paste0(script.dir, "/src"))
+
+# Create grouping data frame
+group_df <- create_group_df(report_loc)
 
 # Check output directory
 check_dir(output_dir)
