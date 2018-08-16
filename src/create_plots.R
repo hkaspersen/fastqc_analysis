@@ -1,7 +1,7 @@
 # Function that creates and saves plots from fastqc data
 create_plots <- function(df_list) {
   p1 <- df_list$adapter_content %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     gather(key,
            value, -c(ref,
@@ -29,10 +29,10 @@ create_plots <- function(df_list) {
       axis.ticks.x = element_blank(),
       legend.position = "bottom"
     ) +
-    facet_wrap(~ seqlen, scales = "free")
+    facet_wrap(~ group, scales = "free", dir = "v")
   
   p2 <- df_list$per_base_sequence_content %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     gather(key, value, -c(ref, Base, group, seqlen)) %>%
     ggplot(aes(factor(
@@ -53,10 +53,10 @@ create_plots <- function(df_list) {
       axis.ticks.x = element_blank(),
       legend.position = "bottom"
     ) +
-    facet_wrap( ~ seqlen, scales = "free")
+    facet_wrap( ~ group, scales = "free", dir = "v")
   
   p3 <- df_list$sequence_duplication_levels %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     gather(key, value, -c(ref, `Duplication Level`, group, seqlen)) %>%
     ggplot(aes(
@@ -83,7 +83,7 @@ create_plots <- function(df_list) {
             hjust = 1,
             vjust = 0.4
           )) +
-    facet_wrap( ~ seqlen, scales = "free")
+    facet_wrap( ~ group, scales = "free")
   
   # p4 <- df_list %>%
   #   prepare_seq_len_data() %>%
@@ -109,23 +109,24 @@ create_plots <- function(df_list) {
   #   facet_wrap(~seqlen, scales = "free")
   
   p5 <- df_list$per_sequence_quality_scores %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(Quality), Count, fill = factor(Quality))) +
     stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.5) +
     scale_y_continuous(labels = comma) +
+    scale_x_discrete(breaks = c(0, 5, 10, 15, 20, 25, 30, 35, 40)) +
     scale_fill_viridis(discrete = TRUE) +
     labs(x = "Quality",
          y = "Number of reads",
          title = "Per sequence quality scores") +
     guides(fill = FALSE) +
     theme_classic() +
-    theme(axis.text.x = element_text(size = 7)) +
-    facet_wrap( ~ seqlen)
+    theme(axis.text.x = element_text(size = 12)) +
+    facet_wrap( ~ group)
   
   p6 <- df_list$per_sequence_gc_content %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(`GC Content`), Count)) +
     stat_boxplot(geom = "errorbar", width = 0.4) +
@@ -138,10 +139,10 @@ create_plots <- function(df_list) {
       from = 0, to = 100, by = 10
     ))) +
     theme_classic() +
-    facet_wrap( ~ seqlen, scales = "free")
+    facet_wrap( ~ group, scales = "free")
   
   p7 <- df_list$per_base_n_content %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     ggplot(aes(factor(
       Base, levels = unique(Base), ordered = TRUE
@@ -155,21 +156,20 @@ create_plots <- function(df_list) {
     theme_classic() +
     theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank()) +
-    facet_wrap( ~ seqlen, scales = "free")
+    facet_wrap( ~ group, scales = "free", dir = "v")
   
   p8 <- df_list$total_deduplicated_percentage %>%
-    select(-group) %>%
     gather(key = "ref", value = `1`) %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length",
            perc = `1`) %>%
     mutate(perc = as.numeric(perc)) %>%
-    ggplot(aes(factor(seqlen), perc)) +
+    ggplot(aes(factor(group), perc)) +
     stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(fill = "#e6e6e6",
                  outlier.size = 0.5) + 
     scale_y_continuous(limits = c(0, 100)) +
-    labs(x = "Read size",
+    labs(x = "Group",
          y = "Total percentage of deduplicated reads",
          title = "Total deduplicated percentage") +
     theme_classic()
@@ -202,12 +202,12 @@ create_plots <- function(df_list) {
   #   facet_wrap(~seqlen, scales = "free")
   
   p10 <- df_list$per_base_sequence_quality %>%
-    left_join(., df_list$basic_statistics[, c("ref", "Sequence length")], by = "ref") %>%
+    left_join(., df_list$basic_statistics[, c("ref", "Sequence length", "group")], by = "ref") %>%
     rename(seqlen = "Sequence length") %>%
     mutate(Base = factor(Base,
                          levels = unique(Base),
                          ordered = TRUE)) %>%
-    group_by(seqlen) %>%
+    group_by(group) %>%
     mutate(xmax = length(unique(Base)) + 1) %>%
     ungroup() %>%
     ggplot(aes(Base,
@@ -215,42 +215,16 @@ create_plots <- function(df_list) {
     stat_boxplot(geom = "errorbar", width = 0.4) +
     geom_boxplot(outlier.size = 0.4,
                  fill = "#7f7f7f") +
-    geom_rect(aes(
-      ymin = 28,
-      ymax = Inf,
-      xmin = 0,
-      xmax = xmax
-    ),
-    fill = "#008000",
-    alpha = 0.006) +
-    geom_rect(aes(
-      ymin = 20,
-      ymax = 28,
-      xmin = 0,
-      xmax = xmax
-    ),
-    fill = "#FFDF00",
-    alpha = 0.006) +
-    geom_rect(aes(
-      ymin = 0,
-      ymax = 20,
-      xmin = 0,
-      xmax = xmax
-    ),
-    fill = "#ff1919",
-    alpha = 0.006) +
+    geom_hline(aes(yintercept = 28),
+               color = "green") +
     labs(x = "Position in read",
          y = "Sequence quality",
          title = "Per base mean sequence quality") +
     scale_y_continuous(limits = c(0, 42)) +
     theme_classic() +
-    theme(axis.text.x = element_text(
-      size = 7,
-      angle = 90,
-      hjust = 1,
-      vjust = 0.4
-    )) +
-    facet_wrap(~ seqlen, scales = "free")
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank()) +
+    facet_wrap(~ group, scales = "free", dir = "v")
   
   save_plots(p1, "adapter_content", 25, 35)
   save_plots(p2, "per_base_sequence_content", 25, 35)
