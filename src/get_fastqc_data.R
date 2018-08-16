@@ -10,7 +10,7 @@ get_fastqc_data <- function(filepath) {
                                 modules = "all",
                                 verbose = FALSE)
                       })
-  names(data_list) <- gsub("(.*?)/(.*?)_fastqc.zip", "\\2", get_files)
+  names(data_list) <- gsub("(.*?)/(.*?)_(.*?)_fastqc.zip", "\\2", get_files)
   data_list <- purrr::transpose(data_list)
   
   data_list$sequence_length_distribution <- NULL
@@ -34,8 +34,8 @@ get_fastqc_data <- function(filepath) {
                   adapter_content,
                   total_deduplicated_percentage)
   names(df_list) <- list_names
-  df_list <- lapply(df_list, create_groups)
   df_list$basic_statistics <- df_list$basic_statistics %>%
-    spread(Measure,Value)
+    spread(Measure,Value) %>%
+    left_join(group_df, by = "ref")
   return(df_list)
 }
