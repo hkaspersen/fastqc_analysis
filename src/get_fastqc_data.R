@@ -1,6 +1,8 @@
 # Function that imports and wrangles fastqc data
 get_fastqc_data <- function(filepath) {
-  get_files <- file_names(filepath)
+  folders <- folder_names(filepath)
+  
+  get_files <- file_names_recursive(filepath)
   
   data_list <- lapply(get_files,
                       FUN = function(file) {
@@ -8,7 +10,7 @@ get_fastqc_data <- function(filepath) {
                                 modules = "all",
                                 verbose = FALSE)
                       })
-  names(data_list) <- gsub("(.*?)_fastqc.zip", "\\1", get_files)
+  names(data_list) <- gsub("(.*?)/(.*?)_fastqc.zip", "\\2", get_files)
   data_list <- purrr::transpose(data_list)
   
   data_list$sequence_length_distribution <- NULL

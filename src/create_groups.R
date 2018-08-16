@@ -1,6 +1,6 @@
 # Function that creates groups from the isolate names
-create_groups <- function(df) {
+create_groups <- function(df, groupdf) {
   df <- df %>%
-    mutate(group = gsub("(.*?)_R[1-2]_001", "\\1", ref))
+    left_join(groupdf, )
   return(df)
 }
